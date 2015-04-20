@@ -31,10 +31,13 @@ package MenuItem {
 }
 
 use Data::Printer;
+use Test::More;
 
 my $model = Test01->new_from_json($json);
 
-p $model;
+isa_ok($model, 'Test01');
+isa_ok($model->menu, 'MenuSpec');
+isa_ok($model->menu->items, 'ARRAY');
+isa_ok($model->menu->items->[0], 'MenuItem');
 
-p $model->menu;
-p $model->menu->items;
+done_testing;
