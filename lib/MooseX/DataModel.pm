@@ -16,6 +16,9 @@ package MooseX::DataModel {
 
     $properties{ is } = 'ro';
 
+    my $location = delete $properties{ location };
+    $properties{ init_arg } = $location if ($location);
+
     my $type = $properties{isa};
     #TODO: other "native" types
     if ($type ne 'Str' and $type ne 'Int' and $type ne 'Num') {
@@ -30,6 +33,9 @@ package MooseX::DataModel {
     my ($meta, $key_name, %properties) = @_;
 
     die "Must specify isa in an array declaration" if (not defined $properties{isa});
+
+    my $location = delete $properties{ location };
+    $properties{ init_arg } = $location if ($location);
 
     my $inner_type = $properties{isa};
     my $orig_type = "ArrayRef[$properties{isa}]";
