@@ -9,6 +9,12 @@ package MooseX::DataModel {
     also => 'Moose',
   );
 
+  #TODO: other "native" types
+  sub _is_moose_native_type {
+    my $type = shift;
+    return ($type eq 'Str' or $type eq 'Int' or $type eq 'Num');
+  }
+
   sub key {
     my ($meta, $key_name, %properties) = @_;
 
@@ -20,8 +26,7 @@ package MooseX::DataModel {
     $properties{ init_arg } = $location if ($location);
 
     my $type = $properties{isa};
-    #TODO: other "native" types
-    if ($type ne 'Str' and $type ne 'Int' and $type ne 'Num') {
+    if (not _is_moose_native_type($type)) {
       $properties{ coerce } = 1;
       coerce $type, from 'HashRef', via { $type->new(%$_) };
     }
@@ -38,17 +43,22 @@ package MooseX::DataModel {
     $properties{ init_arg } = $location if ($location);
 
     my $inner_type = $properties{isa};
-    my $orig_type = "ArrayRef[$properties{isa}]";
+    my $array_type = "ArrayRef[$properties{isa}]";
     
-    my $subtype = "ArrayRefOf$properties{isa}";
-    $subtype =~ s/\[//g;
-    $subtype =~ s/\]//g;
-    subtype $subtype, { as => $orig_type };
-    coerce $subtype, from 'ArrayRef', via { [ map { $inner_type->new(%$_) } @$_ ] };
+    if (not _is_moose_native_type($inner_type)) {
+      my $subtype = "ArrayRefOf$properties{isa}";
+      $subtype =~ s/\[//g;
+      $subtype =~ s/\]//g;
+      subtype $subtype, { as => $array_type };
 
-    $properties{ isa } = $subtype;
+      coerce $subtype, from 'ArrayRef', via { [ map { $inner_type->new(%$_) } @$_ ] };
+      $properties{ coerce } = 1;
+      $properties{ isa } = $subtype;
+    } else {
+      $properties{ isa } = $array_type;
+    }
+
     $properties{ is } = 'ro'; 
-    $properties{ coerce } = 1;
 
     $meta->add_attribute($key_name, \%properties);
   }
