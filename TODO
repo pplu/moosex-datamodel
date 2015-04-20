@@ -1,0 +1,4 @@
+ * Key name has a different key in the datastructure
+ * Manipulate the value before coercing into an object
+ * Difference between key and object? (keys for simple values, objects for complex (need coercion)
+
