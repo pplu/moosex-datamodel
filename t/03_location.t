@@ -7,6 +7,7 @@ package TestModel {
   use MooseX::DataModel;
   key att1 => (isa => 'Str', location => 'keyLoc');
   array att2 => (isa => 'Str', location => 'arrayLoc');
+  object att3 => (isa => 'Str', location => 'hashLoc');
 }
 
 { 
@@ -36,5 +37,22 @@ package TestModel {
 
   ok(not(defined($model1->att2)), 'att2 should only be assigned via arrayLoc, not att2');
 }
+
+{
+  my $ds = { hashLoc => { k1 => 'is there' } };
+  my $model1 = TestModel->new_from_data($ds);
+
+  cmp_ok($model1->att3->{ k1 }, 'eq', 'is there');
+}
+
+{ 
+  my $ds = { att3 => { k1 => 'is there' } };
+  my $model1 = TestModel->new_from_data($ds);
+
+  ok(not(defined($model1->att3)), 'att3 should only be assigned via hashLoc, not att3');
+}
+
+
+
 
 done_testing;
