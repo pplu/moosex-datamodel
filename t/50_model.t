@@ -7,7 +7,11 @@ my $json = q'{ "menu": {
      {"value": "New", "onclick": "CreateNewDoc()"},
      {"value": "Open", "onclick": "OpenDoc()"},
      {"value": "Close"}
-   ]
+   ],
+   "menus": {
+     "menu1": { "value": "New" },
+     "menu2": { "value": "Open" }
+   }
  }
 }';
 
@@ -22,6 +26,7 @@ package MenuSpec {
   key id => ( required => 1, isa => 'Str');
   key value => ( required => 1, isa => 'Str');
   array items => ( isa => 'MenuItem' );
+  object menus => ( isa => 'MenuItem' );
 }
 
 package MenuItem {
@@ -39,5 +44,9 @@ isa_ok($model, 'Test01');
 isa_ok($model->menu, 'MenuSpec');
 isa_ok($model->menu->items, 'ARRAY');
 isa_ok($model->menu->items->[0], 'MenuItem');
+
+isa_ok($model->menu, 'MenuSpec');
+isa_ok($model->menu->menus, 'HASH');
+isa_ok($model->menu->menus->{ menu1 }, 'MenuItem');
 
 done_testing;
