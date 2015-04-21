@@ -5,7 +5,7 @@ package MooseX::DataModel {
 
   Moose::Exporter->setup_import_methods(
     as_is => [ qw/ new_from_json new_from_data / ],
-    with_meta => [ qw/ key array / ],
+    with_meta => [ qw/ key array object / ],
     also => 'Moose',
   );
 
@@ -30,6 +30,35 @@ package MooseX::DataModel {
       $properties{ coerce } = 1;
       coerce $type, from 'HashRef', via { $type->new(%$_) };
     }
+
+    $meta->add_attribute($key_name, \%properties);
+  }
+
+  sub object {
+    my ($meta, $key_name, %properties) = @_;
+
+    die "Must specify isa in an object declaration" if (not defined $properties{isa});
+
+    my $location = delete $properties{ location };
+    $properties{ init_arg } = $location if ($location);
+
+    my $inner_type = $properties{isa};
+    my $array_type = "HashRef[$properties{isa}]";
+    
+    if (not _is_moose_native_type($inner_type)) {
+      my $subtype = "HashRefOf$properties{isa}";
+      $subtype =~ s/\[//g;
+      $subtype =~ s/\]//g;
+      subtype $subtype, { as => $array_type };
+
+      coerce $subtype, from 'HashRef', via { my $uncoerced = $_; return { map { ($_ => $inner_type->new(%{$uncoerced->{$_}})) } keys %$uncoerced } };
+      $properties{ coerce } = 1;
+      $properties{ isa } = $subtype;
+    } else {
+      $properties{ isa } = $array_type;
+    }
+
+    $properties{ is } = 'ro'; 
 
     $meta->add_attribute($key_name, \%properties);
   }

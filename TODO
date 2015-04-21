@@ -1,3 +1,12 @@
  * Manipulate the value before coercing into an object
  * Difference between key and object? (keys for simple values, objects for complex (need coercion)
-
+ * values with variable (unknown keys) (a la hash)
+   - implemented with the object kwyword
+     - but maybe would be good to give a trait that gives better access to values and keys
+ * array type
+   - implemented (but better access via an attribute trait (like "object")
+ * extra fields (things not declared in the schema)
+   * Propsal: MooseNonStrict constructor (access the extra values)
+   * Proposal: role to access the extra values
+   * Proposal: Heredar de una clase base que anade claves
+ * fields with validation
