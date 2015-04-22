@@ -3,6 +3,7 @@
  * values with variable (unknown keys) (a la hash)
    - implemented with the object kwyword
      - but maybe would be good to give a trait that gives better access to values and keys
+   - validation of the keys of the hash
  * array type
    - implemented (but better access via an attribute trait (like "object")
  * extra fields (things not declared in the schema)
@@ -10,3 +11,6 @@
    * Proposal: role to access the extra values
    * Proposal: Heredar de una clase base que anade claves
  * fields with validation
+   * implement with subtypes?
+ * detect differences between type constraints and class names (for better coercion handling)
+ * Can't have a key named "key" or an array named "array"

@@ -6,7 +6,7 @@ package MooseX::DataModel {
   Moose::Exporter->setup_import_methods(
     as_is => [ qw/ new_from_json new_from_data / ],
     with_meta => [ qw/ key array object / ],
-    also => 'Moose',
+    also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
   );
 
   sub key {

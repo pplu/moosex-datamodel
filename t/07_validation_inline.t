@@ -3,24 +3,16 @@
 use Test::More;
 use Test::Exception;
 
-use Moose::Util::TypeConstraints;
-
-subtype 'TestModel::StrStartsWithA', as 'Str', where { $_ =~ m/^a/ };
-enum 'TestModel::Enum', [ 'Valid' ];
 
 package TestModel {
   use MooseX::DataModel;
-  #Test restricting attributes to subtypes
-  key att1 => (isa => 'TestModel::StrStartsWithA');
-  array att2 => (isa => 'TestModel::StrStartsWithA');
-  object att3 => (isa => 'TestModel::StrStartsWithA');
 
-  #Assure that enums are supported too...
-  key att4 => (isa => 'TestModel::Enum');
+  key att1 => (isa => subtype as 'Str', where { $_ =~ m/^a/ });
+  array att2 => (isa => subtype as 'Str', where { $_ =~ m/^a/ });
+  object att3 => (isa => subtype as 'Str', where { $_ =~ m/^a/ });
 
-  # Test to see if we can declare a class more than one time
-  # (so that creating a duplicated coercion doesn't make the class
-  # creation fail
+  key att4 => (isa => enum([ 'Valid' ]));
+
   key class1 => (isa => 'TestModel::Class');
   key class2 => (isa => 'TestModel::Class');
 }
@@ -78,7 +70,7 @@ package TestModel::Class {
   });
 }
 
-{ 
+{
   my $ds = { att4 => 'Invalid' };
 
   dies_ok(sub {
@@ -86,14 +78,13 @@ package TestModel::Class {
   });
 }
 
-{ 
+{
   my $ds = { att4 => 'Valid' };
 
   lives_ok(sub {
     TestModel->new_from_data($ds);
   });
 }
-
 
 
 done_testing;
