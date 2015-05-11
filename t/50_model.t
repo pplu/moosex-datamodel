@@ -38,7 +38,7 @@ package MenuItem {
 use Data::Printer;
 use Test::More;
 
-my $model = Test01->new_from_json($json);
+my $model = Test01->MooseX::DataModel::new_from_json($json);
 
 isa_ok($model, 'Test01');
 isa_ok($model->menu, 'MenuSpec');

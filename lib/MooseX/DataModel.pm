@@ -3,8 +3,13 @@ package MooseX::DataModel {
   use Moose::Exporter;
   use Moose::Util::TypeConstraints qw/find_type_constraint coerce subtype from via/;
 
+#  sub init_meta {
+#    shift;
+#    my $meta = Moose->init_meta( @_ );
+#    return $meta;
+#  }
+
   Moose::Exporter->setup_import_methods(
-    as_is => [ qw/ new_from_json new_from_data / ],
     with_meta => [ qw/ key array object / ],
     also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
   );
@@ -24,7 +29,7 @@ package MooseX::DataModel {
     if (my $constraint = find_type_constraint($type)) {
       if ($constraint->isa('Moose::Meta::TypeConstraint::Class')) {
         $properties{ coerce } = 1;
-        coerce $type, from 'HashRef', via { $type->new(%$_) } if (not $constraint->has_coercion);
+        coerce $type, from 'HashRef', via { $type->new($_) } if (not $constraint->has_coercion);
       }
     } else {
       die "FATAL: Didn't find a type constraint for $key_name";
@@ -51,8 +56,10 @@ package MooseX::DataModel {
         $subtype =~ s/\]//g;
         subtype $subtype, { as => $complex_type };
 
+        my $key_isa = delete $properties{key_isa};
+
         if (not $constraint->has_coercion) {
-          coerce $subtype, from 'HashRef', via { my $uncoerced = $_; return { map { ($_ => $inner_type->new(%{$uncoerced->{$_}})) } keys %$uncoerced } } 
+          coerce $subtype, from 'HashRef', via { my $uncoerced = $_; return { map { ($_ => $inner_type->new($uncoerced->{$_})) } keys %$uncoerced } }
         }
         $properties{ coerce } = 1;
         $properties{ isa } = $subtype;
@@ -87,7 +94,7 @@ package MooseX::DataModel {
         subtype $subtype, { as => $complex_type };
 
         if (not $constraint->has_coercion) {
-          coerce $subtype, from 'ArrayRef', via { [ map { $inner_type->new(%$_) } @$_ ] };
+          coerce $subtype, from 'ArrayRef', via { [ map { $inner_type->new($_) } @$_ ] };
         }
         $properties{ coerce } = 1;
         $properties{ isa } = $subtype;
@@ -107,13 +114,9 @@ package MooseX::DataModel {
   sub new_from_json {
     my ($class, $json) = @_;
     require JSON;
-    return new_from_data($class, JSON::decode_json($json));
+    return $class->new(JSON::decode_json($json));
   }
 
-  sub new_from_data {
-    my ($class, $data) = @_;
-    return $class->new(%$data);
-  }
 }
 
 1;
