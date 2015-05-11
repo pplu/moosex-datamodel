@@ -24,7 +24,7 @@ package TestModel {
 
   my $model1;
   lives_ok(sub {
-    $model1 = TestModel->new_from_data($ds);
+    $model1 = TestModel->new($ds);
   });
   cmp_ok($model1->att1, 'eq', 'is there');
 }

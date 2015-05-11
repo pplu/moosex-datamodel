@@ -18,7 +18,7 @@ package TestObj2 {
 
 { 
   my $ds = { obj1 => { k1 => 1, k2 => 2, k3 => 3 } };
-  my $model1 = TestModel->new_from_data($ds);
+  my $model1 = TestModel->new($ds);
 
   is_deeply($model1->obj1, { k1 => 1, k2 => 2, k3 => 3 });
 }

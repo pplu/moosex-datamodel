@@ -27,39 +27,39 @@ package TestArrayRequired {
 { 
   my $ds = { att1 => 'is there' };
 
-  my $model1 = TestKeyNotRequired->new_from_data($ds);
+  my $model1 = TestKeyNotRequired->new($ds);
   cmp_ok($model1->att1, 'eq', 'is there');
 
-  my $model2 = TestKeyRequired->new_from_data($ds);
+  my $model2 = TestKeyRequired->new($ds);
   cmp_ok($model2->att1, 'eq', 'is there');
 }
 
 { 
   my $ds = { };
 
-  my $model1 = TestKeyNotRequired->new_from_data($ds);
+  my $model1 = TestKeyNotRequired->new($ds);
   ok(not(defined($model1->att1)), 'att1 is not defined');
 
-  dies_ok(sub { TestKeyRequired->new_from_data($ds) });
+  dies_ok(sub { TestKeyRequired->new($ds) });
 }
 
 {
   my $ds = { att1 => [ 'is there' ] };
 
-  my $model1 = TestArrayNotRequired->new_from_data($ds);
+  my $model1 = TestArrayNotRequired->new($ds);
   cmp_ok($model1->att1->[0], 'eq', 'is there');
 
-  my $model2 = TestArrayRequired->new_from_data($ds);
+  my $model2 = TestArrayRequired->new($ds);
   cmp_ok($model2->att1->[0], 'eq', 'is there');
 }
 
 { 
   my $ds = { };
 
-  my $model1 = TestArrayNotRequired->new_from_data($ds);
+  my $model1 = TestArrayNotRequired->new($ds);
   ok(not(defined($model1->att1)), 'att1 is not defined');
 
-  dies_ok(sub { TestArrayRequired->new_from_data($ds) });
+  dies_ok(sub { TestArrayRequired->new($ds) });
 }
 
 

@@ -22,7 +22,7 @@ package TestModel {
   };
 
   lives_ok(sub {
-    TestModel->new_from_data($ds);
+    TestModel->new($ds);
   });
 }
 
@@ -36,7 +36,7 @@ package TestModel {
   };
 
   dies_ok(sub {
-    TestModel->new_from_data($ds);
+    TestModel->new($ds);
   });
 }
 
