@@ -59,7 +59,10 @@ package MooseX::DataModel {
         my $key_isa = delete $properties{key_isa};
 
         if (not $constraint->has_coercion) {
-          coerce $subtype, from 'HashRef', via { my $uncoerced = $_; return { map { ($_ => $inner_type->new($uncoerced->{$_})) } keys %$uncoerced } }
+          coerce $subtype, from 'HashRef', via {
+            my $uncoerced = $_; 
+            return { map { ($_ => $inner_type->new($uncoerced->{$_})) } keys %$uncoerced } 
+          }
         }
         $properties{ coerce } = 1;
         $properties{ isa } = $subtype;
