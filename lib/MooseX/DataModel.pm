@@ -1,13 +1,7 @@
 package MooseX::DataModel {
   use Moose;
   use Moose::Exporter;
-  use Moose::Util::TypeConstraints qw/find_type_constraint coerce subtype from via/;
-
-#  sub init_meta {
-#    shift;
-#    my $meta = Moose->init_meta( @_ );
-#    return $meta;
-#  }
+  use Moose::Util::TypeConstraints qw/find_type_constraint register_type_constraint coerce subtype from via/;
 
   Moose::Exporter->setup_import_methods(
     with_meta => [ qw/ key array object / ],
@@ -38,6 +32,12 @@ package MooseX::DataModel {
     $meta->add_attribute($key_name, \%properties);
   }
 
+  sub _alias_for_paramtype {
+    my $name = shift;
+    $name =~ s/\[(.*)]$/Of$1/;
+    return $name;
+  }
+
   sub object {
     my ($meta, $key_name, %properties) = @_;
 
@@ -46,40 +46,50 @@ package MooseX::DataModel {
     my $location = delete $properties{ location };
     $properties{ init_arg } = $location if ($location);
 
-    my $inner_type = $properties{isa};
-    my $complex_type = "HashRef[$properties{isa}]";
-    
-    if (my $constraint = find_type_constraint($inner_type)){
-      if ($constraint->isa('Moose::Meta::TypeConstraint::Class')) {
-        my $subtype = "HashRefOf$properties{isa}";
-        $subtype =~ s/\[//g;
-        $subtype =~ s/\]//g;
-        subtype $subtype, { as => $complex_type };
+    my ($inner_type, $type, $type_alias);
 
-        my $key_isa = delete $properties{key_isa};
+    if (ref($properties{isa})) {
+      $type = find_type_constraint($properties{isa});
+      die "FATAL: Didn't find a type constraint for $key_name" if (not defined $type);
 
-        if (not $constraint->has_coercion) {
-          coerce $inner_type, from 'HashRef', via {
-            return $inner_type->new($_) 
-          }
-        }
+      $type_alias = _alias_for_paramtype('HashRef[' . $properties{isa}->name . ']');
+      $type = Moose::Meta::TypeConstraint::Parameterized->new(
+        name   => $type_alias,
+        parent => find_type_constraint('HashRef'),
+        type_parameter => $properties{isa}
+      );
+      register_type_constraint($type);
 
-        if (not find_type_constraint($subtype)->has_coercion) {
-          coerce $subtype, from 'HashRef', via {
-            my $uncoerced = $_;
-            return { map { ($_ => $inner_type->new($uncoerced->{$_})) } keys %$uncoerced }
-          }
-        }
-
-        $properties{ coerce } = 1;
-        $properties{ isa } = $subtype;
-      } else {
-        $properties{ isa } = $complex_type;
-      }
+      $inner_type = $properties{isa}->name;
     } else {
-      die "FATAL: Didn't find a type constraint for $key_name";
+      $inner_type = $properties{isa};
+      $type_alias = _alias_for_paramtype("HashRef[$inner_type]");
+
+      $type = find_type_constraint("HashRef[$inner_type]");
+
+      if (not defined find_type_constraint()) {
+        subtype $type_alias, { as => "HashRef[$inner_type]" };
+      }
     }
 
+    my $key_isa = delete $properties{key_isa};
+
+    my $type_constraint = find_type_constraint($inner_type);
+    if (defined $type_constraint and not $type_constraint->has_coercion) {
+      coerce $inner_type, from 'HashRef', via {
+        return $inner_type->new($_) 
+      }
+    }
+
+    if (not find_type_constraint($type_alias)->has_coercion) {
+      coerce $type_alias, from 'HashRef', via {
+        my $uncoerced = $_;
+        return { map { ($_ => $inner_type->new($uncoerced->{$_})) } keys %$uncoerced }
+      };
+    }
+
+    $properties{ coerce } = 1;
+    $properties{ isa } = $type_alias;
     $properties{ is } = 'ro'; 
 
     $meta->add_attribute($key_name, \%properties);
@@ -93,39 +103,42 @@ package MooseX::DataModel {
     my $location = delete $properties{ location };
     $properties{ init_arg } = $location if ($location);
 
-    my $inner_type = $properties{isa};
-    my $complex_type = "ArrayRef[$properties{isa}]";
-    
-    if (my $constraint = find_type_constraint($inner_type)){
-      if ($constraint->isa('Moose::Meta::TypeConstraint::Class')) {
-        my $subtype = "ArrayRefOf$properties{isa}";
-        $subtype =~ s/\[//g;
-        $subtype =~ s/\]//g;
-        subtype $subtype, { as => $complex_type };
+    my ($inner_type, $type, $type_alias);
 
-        if (not $constraint->has_coercion) {
-          coerce $inner_type, from 'HashRef', via { $inner_type->new($_) };
-        }
+    if (ref($properties{isa})) {
+      $type = find_type_constraint($properties{isa});
+      die "FATAL: Didn't find a type constraint for $key_name" if (not defined $type);
 
-        if (not find_type_constraint($subtype)->has_coercion) {
-          coerce $subtype, from 'ArrayRef', via {
-            return [ map { $inner_type->new($_) } @$_ ]
-          }
-        }
+      $type_alias = _alias_for_paramtype('ArrayRef[' . $properties{isa}->name . ']');
+      $type = Moose::Meta::TypeConstraint::Parameterized->new(
+        name   => $type_alias,
+        parent => find_type_constraint('ArrayRef'),
+        type_parameter => $properties{isa}
+      );
+      register_type_constraint($type);
 
-
-        $properties{ coerce } = 1;
-        $properties{ isa } = $subtype;
-      } else {
-        $properties{ isa } = $complex_type;
-      }
+      $inner_type = $properties{isa}->name;
+      $properties{ isa } = $type;
     } else {
-      die "FATAL: Didn't find a type constraint for $key_name";
+      $inner_type = $properties{isa};
+      $type_alias = _alias_for_paramtype("ArrayRef[$inner_type]");
+
+      $type = find_type_constraint($type_alias);
+
+      if (not defined $type) {
+        subtype $type_alias, { as => "ArrayRef[$inner_type]" };
+      }
+      $properties{ isa } = $type_alias;
     }
 
+    if (not find_type_constraint($type_alias)->has_coercion) {
+      coerce $type_alias, from 'ArrayRef', via {
+        return [ map { $inner_type->new($_) } @$_ ]
+      };
+    }
 
+    $properties{ coerce } = 1;
     $properties{ is } = 'ro'; 
-
     $meta->add_attribute($key_name, \%properties);
   }
 
