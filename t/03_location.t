@@ -8,6 +8,7 @@ package TestModel {
   key att1 => (isa => 'Str', location => 'keyLoc');
   array att2 => (isa => 'Str', location => 'arrayLoc');
   object att3 => (isa => 'Str', location => 'hashLoc');
+  key ref => (isa => 'Str', location => '$ref');
 }
 
 { 
@@ -52,6 +53,12 @@ package TestModel {
   ok(not(defined($model1->att3)), 'att3 should only be assigned via hashLoc, not att3');
 }
 
+{
+  my $ds = { '$ref' => 'is there' };
+  my $model1 = TestModel->new($ds);
+
+  cmp_ok($model1->ref, 'eq', 'is there');
+}
 
 
 
