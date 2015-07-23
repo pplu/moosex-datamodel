@@ -7,14 +7,24 @@ package ResolveArgs {
   use Moose::Role;
 
   sub BUILDARGS {
-    my ($class, %args) = @_;
-    return $args{members}[0];
+    my ($class, $args) = @_;
+    return $args->{members}[0];
   }
 }
 
 package TestModel {
   use MooseX::DataModel;
-  with 'ResolveArgs';
+  #with 'ResolveArgs';
+
+  sub BUILDARGS {
+    my ($class, $arg, @rest) = @_;
+    if (not ref($arg) eq 'HASH'){
+      my %args = ($arg, @rest);
+      return $args{members}[0];
+    } else {
+      return $arg->{members}[0];
+    }
+  }
 
   key att1 => (isa => 'Str');
 }

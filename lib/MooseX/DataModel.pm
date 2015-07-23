@@ -1,3 +1,20 @@
+package MooseX::CoercionWithParent::Role::Meta::Attribute {
+  use Moose::Role;
+  override _coerce_and_verify => sub {
+    my $self     = shift;
+    my $val      = shift;
+    my $instance = shift;
+
+    return $val unless $self->has_type_constraint;
+
+    $val = $self->type_constraint->coerce($val,$instance)
+        if $self->should_coerce && $self->type_constraint->has_coercion;
+
+    $self->verify_against_type_constraint($val, instance => $instance);
+
+    return $val;
+  }
+}
 package MooseX::DataModel {
   use Moose;
   use Moose::Exporter;
@@ -6,6 +23,9 @@ package MooseX::DataModel {
   Moose::Exporter->setup_import_methods(
     with_meta => [ qw/ key array object / ],
     also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
+    class_metaroles => {
+      attribute => ['MooseX::CoercionWithParent::Role::Meta::Attribute'],
+    }
   );
 
   sub key {
@@ -23,7 +43,9 @@ package MooseX::DataModel {
     if (my $constraint = find_type_constraint($type)) {
       if ($constraint->isa('Moose::Meta::TypeConstraint::Class')) {
         $properties{ coerce } = 1;
-        coerce $type, from 'HashRef', via { $type->new($_) } if (not $constraint->has_coercion);
+        coerce $type, from 'HashRef', via {
+          $type->new(%$_, parent => $_[1]) 
+        } if (not $constraint->has_coercion);
       }
     } else {
       die "FATAL: Didn't find a type constraint for $key_name";
@@ -67,7 +89,7 @@ package MooseX::DataModel {
 
       $type = find_type_constraint("HashRef[$inner_type]");
 
-      if (not defined find_type_constraint()) {
+      if (not defined $type) {
         subtype $type_alias, { as => "HashRef[$inner_type]" };
       }
     }
@@ -77,14 +99,15 @@ package MooseX::DataModel {
     my $type_constraint = find_type_constraint($inner_type);
     if (defined $type_constraint and not $type_constraint->has_coercion) {
       coerce $inner_type, from 'HashRef', via {
-        return $inner_type->new($_) 
+        return $inner_type->new(%$_, parent => $_[1]);
       }
     }
 
     if (not find_type_constraint($type_alias)->has_coercion) {
       coerce $type_alias, from 'HashRef', via {
         my $uncoerced = $_;
-        return { map { ($_ => $inner_type->new($uncoerced->{$_})) } keys %$uncoerced }
+        my $coerce_routine = $type_constraint;
+        return { map { ($_ => $coerce_routine->coerce($uncoerced->{$_}, $_[1])) } keys %$uncoerced }
       };
     }
 
@@ -131,9 +154,22 @@ package MooseX::DataModel {
       $properties{ isa } = $type_alias;
     }
 
+    my $type_constraint = find_type_constraint($inner_type);
+    if (defined $type_constraint and not $type_constraint->has_coercion) {
+      coerce $inner_type, from 'HashRef', via {
+        return $inner_type->new(%$_, parent => $_[1]);
+      }
+    }
+
     if (not find_type_constraint($type_alias)->has_coercion) {
       coerce $type_alias, from 'ArrayRef', via {
-        return [ map { $inner_type->new($_) } @$_ ]
+        my $type_c = find_type_constraint($inner_type);
+        my $parent = $_[1];
+        if ($type_c->has_coercion) {
+          return [ map { $type_c->coerce($_, $parent) } @$_ ]
+        } else {
+          return [ map { $_ } @$_ ]
+        }
       };
     }
 
