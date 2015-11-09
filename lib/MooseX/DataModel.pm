@@ -1,24 +1,8 @@
-package MooseX::CoercionWithParent::Role::Meta::Attribute {
-  use Moose::Role;
-  override _coerce_and_verify => sub {
-    my $self     = shift;
-    my $val      = shift;
-    my $instance = shift;
-
-    return $val unless $self->has_type_constraint;
-
-    $val = $self->type_constraint->coerce($val,$instance)
-        if $self->should_coerce && $self->type_constraint->has_coercion;
-
-    $self->verify_against_type_constraint($val, instance => $instance);
-
-    return $val;
-  }
-}
 package MooseX::DataModel {
   use Moose;
   use Moose::Exporter;
   use Moose::Util::TypeConstraints qw/find_type_constraint register_type_constraint coerce subtype from via/;
+  use MooseX::CoercionWithParent::Role::Meta::Attribute;
 
   Moose::Exporter->setup_import_methods(
     with_meta => [ qw/ key array object / ],
