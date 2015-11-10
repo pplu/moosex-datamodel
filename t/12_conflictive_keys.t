@@ -27,7 +27,7 @@ package TestModel {
   };
 
   lives_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 

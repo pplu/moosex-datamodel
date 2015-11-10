@@ -18,14 +18,14 @@ package TestArr2 {
 
 { 
   my $ds = { arr1 => [ 1, 2, 3 ] };
-  my $model1 = TestModel->new($ds);
+  my $model1 = TestModel->new_from_data($ds);
 
   is_deeply($model1->arr1, [ 1, 2, 3 ]);
 }
 
 { 
   my $ds = { arr2 => [ { name => 'pepe', value => 'grillo' } ] };
-  my $model1 = TestModel->new($ds);
+  my $model1 = TestModel->new_from_data($ds);
 
   isa_ok($model1->arr2->[0], 'TestArr2');
   cmp_ok($model1->arr2->[0]->name, 'eq', 'pepe'); 

@@ -12,7 +12,7 @@ package AnObject {
 
 coerce 'AnObject',
   from 'HashRef',
-   via { AnObject->new(a => "coerced " . $_->{ a }) };
+   via { AnObject->new_from_data(a => "coerced " . $_->{ a }) };
 
 package TestModel {
   use MooseX::DataModel;
@@ -23,7 +23,7 @@ package TestModel {
 
 { 
   my $ds = { att1 => { a => 'val1' }, att2 => [ { a => 'val2' } ], att3 => { 'key1' => { 'a' => 'val3' } } };
-  my $model = TestModel->new($ds);
+  my $model = TestModel->new_from_data($ds);
 
   cmp_ok($model->att1->a, 'eq', 'coerced val1');
   cmp_ok($model->att2->[0]->a, 'eq', 'coerced val2');

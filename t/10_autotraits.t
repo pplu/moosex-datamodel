@@ -18,7 +18,7 @@ package TestObj2 {
 
 { 
   my $ds = { obj1 => { k1 => 1, k2 => 2, k3 => 3 } };
-  my $model1 = TestModel->new($ds);
+  my $model1 = TestModel->new_from_data($ds);
 
   is_deeply([ sort $model->obj1_keys ], [ 'k1', 'k2', 'k3' ]); 
   cmp_ok($model->get_obj1('k1'), '==', 1);
@@ -29,7 +29,7 @@ package TestObj2 {
                        k2 => { name => 'manuel', value => 'juan' }
                      }
            };
-  my $model1 = TestModel->new($ds);
+  my $model1 = TestModel->new_from_data($ds);
 
   is_deeply([ sort $model->obj2_keys ], [ 'k1', 'k2' ]); 
   cmp_ok($model->get_obj2('k1')->name, 'eq', 'pepe');

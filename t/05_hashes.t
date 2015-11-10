@@ -18,7 +18,7 @@ package TestObj2 {
 
 { 
   my $ds = { obj1 => { k1 => 1, k2 => 2, k3 => 3 } };
-  my $model1 = TestModel->new($ds);
+  my $model1 = TestModel->new_from_data($ds);
 
   is_deeply($model1->obj1, { k1 => 1, k2 => 2, k3 => 3 });
 }
@@ -28,7 +28,7 @@ package TestObj2 {
                        k2 => { name => 'manuel', value => 'juan' }
                      }
            };
-  my $model1 = TestModel->new($ds);
+  my $model1 = TestModel->new_from_data($ds);
 
   isa_ok($model1->obj2->{ k1 }, 'TestObj2');
   cmp_ok($model1->obj2->{ k1 }->name, 'eq', 'pepe'); 

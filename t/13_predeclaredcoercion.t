@@ -21,7 +21,7 @@ package TestModel {
 
 { 
   my $ds = { att1 => 'val1', att2 => [ 'val2' ], att3 => { 'val3' => 1 } };
-  my $model = TestModel->new($ds);
+  my $model = TestModel->new_from_data($ds);
 
   cmp_ok($model->att1, 'eq', 'ST1: val1');
 

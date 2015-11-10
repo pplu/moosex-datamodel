@@ -41,7 +41,7 @@ package TestModel {
 
 { 
   my $ds = { att1 => { a => 'val1' }, att2 => [ { a => 'val2' } ], att3 => { 'key1' => { 'a' => 'val3' } } };
-  my $model = TestModel->new($ds);
+  my $model = TestModel->new_from_data($ds);
 
 use Data::Dumper;
 print Dumper($model);

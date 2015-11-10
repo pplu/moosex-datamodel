@@ -34,7 +34,7 @@ package TestModel::Class {
   my $ds = { att1 => 'is invalid' };
 
   dies_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
@@ -42,7 +42,7 @@ package TestModel::Class {
   my $ds = { att1 => 'a value that starts with a' };
 
   lives_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
@@ -50,7 +50,7 @@ package TestModel::Class {
   my $ds = { att2 => [ 'is invalid' ] };
 
   dies_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
@@ -58,7 +58,7 @@ package TestModel::Class {
   my $ds = { att2 => [ 'a value that starts with a' ] };
 
   lives_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
@@ -66,7 +66,7 @@ package TestModel::Class {
   my $ds = { att3 => { k1 => 'is invalid' } };
 
   dies_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
@@ -74,7 +74,7 @@ package TestModel::Class {
   my $ds = { att3 => { k1 => 'a value that starts with a' } };
 
   lives_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
@@ -82,7 +82,7 @@ package TestModel::Class {
   my $ds = { att4 => 'Invalid' };
 
   dies_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
@@ -90,7 +90,7 @@ package TestModel::Class {
   my $ds = { att4 => 'Valid' };
 
   lives_ok(sub {
-    TestModel->new($ds);
+    TestModel->new_from_data($ds);
   });
 }
 
