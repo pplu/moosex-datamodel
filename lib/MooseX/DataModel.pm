@@ -11,6 +11,17 @@ package MooseX::DataModel;
     also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
   );
 
+  our $internal_types = {
+    Int => 1,
+    Str => 1,
+    Num => 1,
+    Bool => 1,
+  };
+
+  sub is_internal_type {
+    return $internal_types->{ $_[0] } || 0;
+  }
+
   sub new_from_data {
     my ($class, $params) = @_;
 
@@ -24,31 +35,49 @@ package MooseX::DataModel;
         $att = $att_meta->name;
       }
 
+      # the user might want to initialize the attribute to undef, so we use exists
       next if (not exists $params->{ $att });
 
       my $type = $att_meta->type_constraint;
-      if ($type eq 'Bool') {
-        $p->{ $att } = ($params->{ $att } == 1)?1:0;
-      } elsif ($type eq 'Str' or $type eq 'Num' or $type eq 'Int') {
+
+use Data::Dumper;
+print Dumper($type);
+
+      # Enum and Parametrized have to be tested before a plain TypeConstraint, since they are subclasses
+      # of TypeConstraint, so they would 
+      if ($type->isa('Moose::Meta::TypeConstraint::Enum')) {
         $p->{ $att } = $params->{ $att };
-      } elsif ($type =~ m/^ArrayRef\[(.*?)\]$/){
-        my $subtype = "$1";
-        if ($subtype eq 'Str' or $subtype eq 'Num' or $subtype eq 'Int' or $subtype eq 'Bool') {
+      } elsif ($type->isa('Moose::Meta::TypeConstraint::Parameterized')) {
+        my $parametrized_type = $type->parent->name;
+        my $inner_type = $type->type_parameter->name;
+        if ($parametrized_type eq 'ArrayRef') {
+          if (is_internal_type($inner_type)) {
+            #TODO: Bools should be processed as in TypeConstraint
+            $p->{ $att } = $params->{ $att };
+          } else {
+            $p->{ $att } = [ map { $inner_type->new_from_data($_) } @{ $params->{ $att } } ];
+          }
+        } elsif ($parametrized_type eq 'HashRef') {
+          if (is_internal_type($inner_type)) {
+            #TODO: Bools should be processed as in TypeConstraint
+            $p->{ $att } = $params->{ $att };
+          } else {
+            $p->{ $att } = { map { ( $_ => $inner_type->new_from_data($params->{ $att }->{ $_ }) ) } keys %{ $params->{ $att } } };
+          }
+        } else {
+          die "Don't know how to treat parametrized type $parametrized_type for inner type $inner_type";
+        }
+      } elsif ($type->isa('Moose::Meta::TypeConstraint')) {
+        my $t_name = $type->name;
+        if ($t_name eq 'Bool') {
+          $p->{ $att } = ($params->{ $att } == 1)?1:0;
+        } elsif (is_internal_type($t_name)) {
           $p->{ $att } = $params->{ $att };
         } else {
-          $p->{ $att } = [ map { $subtype->new_from_data($_) } @{ $params->{ $att } } ];
+          die "Don't know how to treat type $t_name";
         }
-      } elsif ($type =~ m/^HashRef\[(.*?)\]$/){
-        my $subtype = "$1";
-        if ($subtype eq 'Str' or $subtype eq 'Num' or $subtype eq 'Int' or $subtype eq 'Bool') {
-          $p->{ $att } = $params->{ $att };
-        } else {
-          $p->{ $att } = { map { ( $_ => $subtype->new_from_data($params->{ $att }->{ $_ }) ) } keys %{ $params->{ $att } } };
-        }
-      } elsif ($type->isa('Moose::Meta::TypeConstraint::Enum')){
-        $p->{ $att } = $params->{ $att };
       } else {
-        $p->{ $att } = $class->new_from_data("$type", $params->{ $att });
+        die "Don't know what to do with a type of $type";
       }
     }
     return $class->new($p);
