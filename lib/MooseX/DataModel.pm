@@ -1,4 +1,4 @@
-package MooseX::DataModel {
+package MooseX::DataModel;
   use Moose;
   use Moose::Exporter;
   use Moose::Util qw//;
@@ -127,7 +127,5 @@ package MooseX::DataModel {
     require JSON;
     return $class->new(JSON::decode_json($json));
   }
-
-}
 
 1;
