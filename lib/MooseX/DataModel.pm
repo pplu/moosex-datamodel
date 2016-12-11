@@ -25,7 +25,7 @@ package MooseX::DataModel;
   sub new_from_data {
     my ($class, $params) = @_;
 
-    my $meta = Moose::Util::find_meta($class) or die "Didn't find metaclass for $class";
+    my $meta = Moose::Util::find_meta($class) or die "Didn't find metaclass for '$class'";
     my $p = {};
     foreach my $att_meta ($meta->get_all_attributes) {
       my $att;
