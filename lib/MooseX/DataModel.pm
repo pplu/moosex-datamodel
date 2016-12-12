@@ -39,6 +39,9 @@ package MooseX::DataModel;
     my ($class, $params) = @_;
 
     my $meta = Moose::Util::find_meta($class) or die "Didn't find metaclass for '$class'";
+
+    $params = $class->MANIPARGS($params) if ($class->can('MANIPARGS'));
+
     my $p = {};
     foreach my $att_meta ($meta->get_all_attributes) {
       my $att;

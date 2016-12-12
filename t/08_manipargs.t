@@ -16,14 +16,9 @@ package TestModel {
   use MooseX::DataModel;
   #with 'ResolveArgs';
 
-  sub BUILDARGS {
-    my ($class, $arg, @rest) = @_;
-    if (not ref($arg) eq 'HASH'){
-      my %args = ($arg, @rest);
-      return $args{members}[0];
-    } else {
-      return $arg->{members}[0];
-    }
+  sub MANIPARGS {
+    my ($class, $ref) = @_;
+    return $ref->{members}[0];
   }
 
   key att1 => (isa => 'Str');
