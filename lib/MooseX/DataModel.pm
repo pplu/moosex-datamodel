@@ -13,17 +13,6 @@ package MooseX::DataModel;
     also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
   );
 
-  our $internal_types = {
-    Int => 1,
-    Str => 1,
-    Num => 1,
-    Bool => 1,
-  };
-
-  sub is_internal_type {
-    return $internal_types->{ $_[0] } || 0;
-  }
-
   sub inflate_scalar {
     my ($t_name, $value) = @_;
     if ($t_name->isa('Moose::Object')) {
