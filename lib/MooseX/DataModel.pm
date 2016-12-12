@@ -24,6 +24,17 @@ package MooseX::DataModel;
     return $internal_types->{ $_[0] } || 0;
   }
 
+  sub inflate_scalar {
+    my ($t_name, $value) = @_;
+    if ($t_name->isa('Moose::Object')) {
+      return new_from_data($t_name, $value);
+    } elsif ($t_name eq 'Bool') {
+      return ($value == 1)?1:0;
+    } else { 
+      return $value;
+    }
+  }
+
   sub new_from_data {
     my ($class, $params) = @_;
 
@@ -53,31 +64,14 @@ print Dumper($type);
         my $parametrized_type = $type->parent->name;
         my $inner_type = $type->type_parameter->name;
         if ($parametrized_type eq 'ArrayRef') {
-          if (is_internal_type($inner_type)) {
-            #TODO: Bools should be processed as in TypeConstraint
-            $p->{ $att } = $params->{ $att };
-          } else {
-            $p->{ $att } = [ map { $inner_type->new_from_data($_) } @{ $params->{ $att } } ];
-          }
+          $p->{ $att } = [ map { inflate_scalar($inner_type, $_) } @{ $params->{ $att } } ];
         } elsif ($parametrized_type eq 'HashRef') {
-          if (is_internal_type($inner_type)) {
-            #TODO: Bools should be processed as in TypeConstraint
-            $p->{ $att } = $params->{ $att };
-          } else {
-            $p->{ $att } = { map { ( $_ => $inner_type->new_from_data($params->{ $att }->{ $_ }) ) } keys %{ $params->{ $att } } };
-          }
+          $p->{ $att } = { map { ( $_ => inflate_scalar($inner_type, $params->{ $att }->{ $_ }) ) } keys %{ $params->{ $att } } };
         } else {
           die "Don't know how to treat parametrized type $parametrized_type for inner type $inner_type";
         }
       } elsif ($type->isa('Moose::Meta::TypeConstraint')) {
-        my $t_name = $type->name;
-        if ($t_name eq 'Bool') {
-          $p->{ $att } = ($params->{ $att } == 1)?1:0;
-        } elsif (is_internal_type($t_name)) {
-          $p->{ $att } = $params->{ $att };
-        } else {
-          die "Don't know how to treat type $t_name";
-        }
+        $p->{ $att } = inflate_scalar($type->name, $params->{ $att });
       } else {
         die "Don't know what to do with a type of $type";
       }
