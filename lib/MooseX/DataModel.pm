@@ -3,6 +3,8 @@ package MooseX::DataModel;
   use Moose::Exporter;
   use Moose::Util qw//;
   use Moose::Util::TypeConstraints qw/find_type_constraint/;
+  use Moose::Meta::TypeConstraint::Parameterized;
+  use Ref::Util qw/is_blessed_ref/;
   use Carp;
 
   Moose::Exporter->setup_import_methods(
@@ -109,15 +111,15 @@ print Dumper($type);
 
     my ($inner_type, $type);
 
-    if (ref($properties{isa})) {
-      $type = find_type_constraint($properties{isa});
-      die "FATAL: Didn't find a type constraint for $key_name" if (not defined $type);
-
-      $properties{ isa } = 'HashRef[' . $properties{isa}->name . ']';
+    if (is_blessed_ref($properties{isa})) {
+      my $constraint = Moose::Meta::TypeConstraint::Parameterized->new(
+        parent => find_type_constraint('HashRef'),
+        type_parameter => $properties{isa},
+      );
+      $properties{ isa } = $constraint;
     } else {
       $inner_type = $properties{isa};
       $properties{ isa } = "HashRef[$inner_type]";
-      
     }
 
     my $key_isa = delete $properties{key_isa};
@@ -137,11 +139,12 @@ print Dumper($type);
 
     my ($inner_type, $type);
 
-    if (ref($properties{isa})) {
-      $type = find_type_constraint($properties{isa});
-      die "FATAL: Didn't find a type constraint for $key_name" if (not defined $type);
-
-      $properties{ isa } = 'ArrayRef[' . $properties{isa}->name . ']';
+    if (is_blessed_ref($properties{isa})) {
+      my $constraint = Moose::Meta::TypeConstraint::Parameterized->new(
+        parent => find_type_constraint('ArrayRef'),
+        type_parameter => $properties{isa},
+      );
+      $properties{ isa } = $constraint;
     } else {
       $inner_type = $properties{isa};
       $properties{ isa } = "ArrayRef[$inner_type]";
