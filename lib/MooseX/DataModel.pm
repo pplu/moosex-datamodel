@@ -1,20 +1,3 @@
-package MooseX::CoercionWithParent::Role::Meta::Attribute {
-  use Moose::Role;
-  override _coerce_and_verify => sub {
-    my $self     = shift;
-    my $val      = shift;
-    my $instance = shift;
-
-    return $val unless $self->has_type_constraint;
-
-    $val = $self->type_constraint->coerce($val,$instance)
-        if $self->should_coerce && $self->type_constraint->has_coercion;
-
-    $self->verify_against_type_constraint($val, instance => $instance);
-
-    return $val;
-  }
-}
 package MooseX::DataModel {
   use Moose;
   use Moose::Exporter;
@@ -24,9 +7,6 @@ package MooseX::DataModel {
   Moose::Exporter->setup_import_methods(
     with_meta => [ qw/ key array object / ],
     also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
-    class_metaroles => {
-      attribute => ['MooseX::CoercionWithParent::Role::Meta::Attribute'],
-    }
   );
 
   sub key {
@@ -47,7 +27,7 @@ package MooseX::DataModel {
            not $constraint->coercion->has_coercion_for_type('HashRef'))
          ){
         coerce $type, from 'HashRef', via {
-          $type->new(%$_, parent => $_[1]) 
+          $type->new(%$_) 
         }
       }
 
@@ -106,7 +86,7 @@ package MooseX::DataModel {
     my $type_constraint = find_type_constraint($inner_type);
     if (defined $type_constraint and not $type_constraint->has_coercion) {
       coerce $inner_type, from 'HashRef', via {
-        return $inner_type->new(%$_, parent => $_[1]);
+        return $inner_type->new(%$_);
       }
     }
 
@@ -164,7 +144,7 @@ package MooseX::DataModel {
     my $type_constraint = find_type_constraint($inner_type);
     if (defined $type_constraint and not $type_constraint->has_coercion) {
       coerce $inner_type, from 'HashRef', via {
-        return $inner_type->new(%$_, parent => $_[1]);
+        return $inner_type->new(%$_);
       }
     }
 
@@ -173,7 +153,7 @@ package MooseX::DataModel {
         my $type_c = find_type_constraint($inner_type);
         my $parent = $_[1];
         if ($type_c->has_coercion) {
-          return [ map { $type_c->coerce($_, $parent) } @$_ ]
+          return [ map { $type_c->coerce($_) } @$_ ]
         } else {
           return [ map { $_ } @$_ ]
         }
