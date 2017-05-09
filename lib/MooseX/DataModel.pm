@@ -41,11 +41,17 @@ package MooseX::DataModel {
     my $type = $properties{isa};
 
     if (my $constraint = find_type_constraint($type)) {
-      if ($constraint->isa('Moose::Meta::TypeConstraint::Class')) {
-        $properties{ coerce } = 1;
+      if ($constraint->isa('Moose::Meta::TypeConstraint::Class') and 
+          (not $constraint->has_coercion or
+           not $constraint->coercion->has_coercion_for_type('HashRef'))
+         ){
         coerce $type, from 'HashRef', via {
           $type->new(%$_, parent => $_[1]) 
-        } if (not $constraint->has_coercion);
+        }
+      }
+
+      if ($constraint->has_coercion){
+        $properties{ coerce } = 1
       }
     } else {
       die "FATAL: Didn't find a type constraint for $key_name";
