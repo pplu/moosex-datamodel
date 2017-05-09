@@ -1,6 +1,8 @@
 requires 'Moose';
 
-
-requires 'Data::Printer';
-requires 'Test::More';
-requires 'Test::Exception';
+on 'test' => sub {
+  requires 'Data::Printer';
+  requires 'Test::More';
+  requires 'Test::Exception';
+  requires 'Types::Standard';
+}
