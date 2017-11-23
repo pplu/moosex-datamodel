@@ -16,7 +16,8 @@ package TestObj2 {
 }
 
 
-{ 
+SKIP: {
+  skip "Automatically attached traits to a model is not implemented yet", 2;
   my $ds = { obj1 => { k1 => 1, k2 => 2, k3 => 3 } };
   my $model1 = TestModel->new($ds);
 
@@ -24,7 +25,8 @@ package TestObj2 {
   cmp_ok($model->get_obj1('k1'), '==', 1);
 }
 
-{ 
+SKIP:{ 
+  skip "Automatically attached traits to a model is not implemented yet", 2;
   my $ds = { obj2 => { k1 => { name => 'pepe', value => 'grillo' },
                        k2 => { name => 'manuel', value => 'juan' }
                      }
