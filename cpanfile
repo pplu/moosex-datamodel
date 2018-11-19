@@ -6,12 +6,3 @@ on 'test' => sub {
   requires 'Test::Exception';
   requires 'Types::Standard';
 };
-on 'develop' => sub {
-  requires 'Dist::Zilla';
-  requires 'Dist::Zilla::Plugin::Git::GatherDir';
-  requires 'Dist::Zilla::Plugin::Prereqs::FromCPANfile';
-  requires 'Dist::Zilla::Plugin::VersionFromModule';
-  requires 'Dist::Zilla::PluginBundle::Git';
-  requires 'Dist::Zilla::Plugin::RunExtraTests';
-  requires 'Dist::Zilla::Plugin::Test::Compile';
-};
