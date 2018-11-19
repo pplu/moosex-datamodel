@@ -1,4 +1,5 @@
 requires 'Moose';
+requires 'JSON::MaybeXS';
 
 on 'test' => sub {
   requires 'Data::Printer';

@@ -167,8 +167,8 @@ package MooseX::DataModel {
 
   sub new_from_json {
     my ($class, $json) = @_;
-    require JSON;
-    return $class->new(JSON::decode_json($json));
+    require JSON::MaybeXS;
+    return $class->new(JSON::MaybeXS::decode_json($json));
   }
 
 }
