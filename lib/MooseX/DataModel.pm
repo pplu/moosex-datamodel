@@ -1,6 +1,4 @@
 package MooseX::DataModel {
-  # ABSTRACT: Generate object models from datastrctures
-  our $VERSION = '0.02';
   use Moose;
   use Moose::Exporter;
   use Moose::Util::TypeConstraints qw/find_type_constraint register_type_constraint coerce subtype from via/;
