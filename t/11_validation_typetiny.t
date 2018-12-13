@@ -6,12 +6,13 @@ use Test::Exception;
 
 package TestModel {
   use MooseX::DataModel;
+  use Types::Standard qw( Str Int Enum );
 
-  key att1 => (isa => );
-  array att2 => (isa => );
-  object att3 => (isa => );
+  key att1 => (isa => Int);
+  array att2 => (isa => Int);
+  object att3 => (isa => Int);
 
-  key att4 => (isa => enum([ 'Valid' ]));
+  key att4 => (isa => Enum([ 'Valid' ]));
 
   key class1 => (isa => 'TestModel::Class');
   key class2 => (isa => 'TestModel::Class');
@@ -23,7 +24,7 @@ package TestModel::Class {
 }
 
 { 
-  my $ds = { att1 => 'is invalid' };
+  my $ds = { att1 => 'not a number' };
 
   dies_ok(sub {
     TestModel->new_from_data($ds);
@@ -31,11 +32,13 @@ package TestModel::Class {
 }
 
 { 
-  my $ds = { att1 => 'a value that starts with a' };
+  my $ds = { att1 => 42 };
 
+  my $m;
   lives_ok(sub {
-    TestModel->new_from_data($ds);
+    $m = TestModel->new_from_data($ds);
   });
+  cmp_ok($m->att1, '==', 42, 'att1 is 42');
 }
 
 {
@@ -47,11 +50,13 @@ package TestModel::Class {
 }
 
 {
-  my $ds = { att2 => [ 'a value that starts with a' ] };
+  my $ds = { att2 => [ 42 ] };
 
+  my $m;
   lives_ok(sub {
-    TestModel->new_from_data($ds);
+    $m = TestModel->new_from_data($ds);
   });
+  cmp_ok($m->att2->[0], '==', 42, 'att1->[0] is 42');
 }
 
 {
@@ -63,11 +68,13 @@ package TestModel::Class {
 }
 
 {
-  my $ds = { att3 => { k1 => 'a value that starts with a' } };
+  my $ds = { att3 => { k1 => 42 } };
 
+  my $m;
   lives_ok(sub {
-    TestModel->new_from_data($ds);
+    $m = TestModel->new_from_data($ds);
   });
+  cmp_ok($m->att3->{ k1 }, '==', 42, 'att3->k1 is 42');
 }
 
 {
