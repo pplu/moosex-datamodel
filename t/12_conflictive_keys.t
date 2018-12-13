@@ -26,9 +26,16 @@ package TestModel {
              type => 'exists',
   };
 
+  my $o;
   lives_ok(sub {
-    TestModel->new_from_data($ds);
+    $o = TestModel->new_from_data($ds);
   });
+
+  cmp_ok($o->key, 'eq', 'exists');
+  cmp_ok($o->array, 'eq', 'exists');
+  cmp_ok($o->object, 'eq', 'exists');
+  cmp_ok($o->has, 'eq', 'exists');
+  cmp_ok($o->type, 'eq', 'exists');
 }
 
 #TODO: test a key named "meta"

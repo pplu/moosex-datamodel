@@ -1,19 +1,7 @@
-package MooseX::DataModel;
+package MooseX::DataModel::Object;
   use Moose;
-  use Moose::Exporter;
-  use Moose::Util qw//;
-  use Moose::Util::TypeConstraints qw/find_type_constraint/;
-  use Moose::Meta::TypeConstraint::Parameterized;
-  use Ref::Util qw/is_blessed_ref/;
-  use Carp;
-
-  Moose::Exporter->setup_import_methods(
-    with_meta => [ qw/ key array object / ],
-    as_is => [ 'new_from_data', 'new_from_json' ],
-    also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
-  );
-
-  sub inflate_scalar {
+  
+  sub _inflate_scalar {
     my ($t_name, $value) = @_;
     if ($t_name->isa('Moose::Object')) {
       return new_from_data($t_name, $value);
@@ -53,19 +41,41 @@ package MooseX::DataModel;
         my $parametrized_type = $type->parent->name;
         my $inner_type = $type->type_parameter->name;
         if ($parametrized_type eq 'ArrayRef') {
-          $p->{ $att } = [ map { inflate_scalar($inner_type, $_) } @{ $params->{ $att } } ];
+          $p->{ $att } = [ map { _inflate_scalar($inner_type, $_) } @{ $params->{ $att } } ];
         } elsif ($parametrized_type eq 'HashRef') {
-          $p->{ $att } = { map { ( $_ => inflate_scalar($inner_type, $params->{ $att }->{ $_ }) ) } keys %{ $params->{ $att } } };
+          $p->{ $att } = { map { ( $_ => _inflate_scalar($inner_type, $params->{ $att }->{ $_ }) ) } keys %{ $params->{ $att } } };
         } else {
           die "Don't know how to treat parametrized type $parametrized_type for inner type $inner_type";
         }
       } elsif ($type->isa('Moose::Meta::TypeConstraint')) {
-        $p->{ $att } = inflate_scalar($type->name, $params->{ $att });
+        $p->{ $att } = _inflate_scalar($type->name, $params->{ $att });
       } else {
         die "Don't know what to do with a type of $type";
       }
     }
     return $class->new($p);
+  }
+
+package MooseX::DataModel;
+  use Moose;
+  use Moose::Exporter;
+  use Moose::Util qw//;
+  use Moose::Util::TypeConstraints qw/find_type_constraint/;
+  use Moose::Meta::TypeConstraint::Parameterized;
+  use Ref::Util qw/is_blessed_ref/;
+  use Carp;
+
+  Moose::Exporter->setup_import_methods(
+    with_meta => [ qw/ key array object / ],
+    as_is => [ ],
+    also => [ 'Moose', 'Moose::Util::TypeConstraints' ],
+  );
+
+  sub init_meta {
+    shift;
+    my %args = @_;
+
+    return Moose->init_meta(%args, base_class => 'MooseX::DataModel::Object');
   }
 
 
